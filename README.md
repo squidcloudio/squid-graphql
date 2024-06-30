@@ -1,0 +1,1 @@
+# Squid GraphQL client
