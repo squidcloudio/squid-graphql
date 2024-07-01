@@ -25,7 +25,7 @@
     "rxjs": ">=7.5.7 <8.0.0"
   },
   "dependencies": {
-    "@squidcloud/client": "^1.0.245",
+    "@squidcloud/client": "^1.0.246",
     "graphql": "^16.6.0",
     "assertic": "^1.0.4"
   },
