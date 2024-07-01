@@ -5,8 +5,10 @@ import { GraphQLRequest, IntegrationId, Squid } from '@squidcloud/client';
 
 /** The interface supported by Squid but is not exposed to public. */
 interface SquidInternal {
-  getApplicationUrl: (region: string, appId: string, integrationId: string) => string;
-  getStaticHeaders: () => Record<string, string>;
+  internal(): {
+    getApplicationUrl: (region: string, appId: string, integrationId: string) => string;
+    getStaticHeaders: () => Record<string, string>;
+  };
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -18,7 +20,7 @@ export class GraphQLClient {
     squid: Squid,
     integrationId: IntegrationId,
   ) {
-    const squidInternal = squid as unknown as SquidInternal;
+    const squidInternal = (squid as unknown as SquidInternal).internal();
     const url = squidInternal.getApplicationUrl(squid.options.region, squid.options.appId, `${integrationId}/graphql`);
     this.client = new ApolloClient({
       link: new HttpLink({
