@@ -1,25 +1,29 @@
 import { ApolloClient, gql, HttpLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { ApolloQueryResult } from '@apollo/client/core/types';
 import { FetchResult } from '@apollo/client/link/core';
-import { GraphQLRequest, IntegrationId, SquidRegion } from '@squidcloud/client';
-import { getApplicationUrl } from '@squidcloud/client/dist/internal-common/src/utils/http';
+import { GraphQLRequest, IntegrationId, Squid } from '@squidcloud/client';
 
+/** The interface supported by Squid but is not exposed to public. */
+interface SquidInternal {
+  getApplicationUrl: (region: string, appId: string, integrationId: string) => string;
+  getStaticHeaders: () => Record<string, string>;
+}
+
+// noinspection JSUnusedGlobalSymbols
 /** A GraphQL client that can be used to query and mutate data. */
 export class GraphQLClient {
   private readonly client: ApolloClient<NormalizedCacheObject>;
 
-  /** @internal */
   constructor(
-    private readonly rpcManager: RpcManager,
+    squid: Squid,
     integrationId: IntegrationId,
-    private readonly region: SquidRegion,
-    private readonly appId: string,
   ) {
-    const url = getApplicationUrl(this.region, this.appId, `${integrationId}/graphql`);
+    const squidInternal = squid as unknown as SquidInternal;
+    const url = squidInternal.getApplicationUrl(squid.options.region, squid.options.appId, `${integrationId}/graphql`);
     this.client = new ApolloClient({
       link: new HttpLink({
         uri: url,
-        headers: this.rpcManager.getStaticHeaders(),
+        headers: squidInternal.getStaticHeaders(),
       }),
       cache: new InMemoryCache(),
     });
