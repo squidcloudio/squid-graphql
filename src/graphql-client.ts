@@ -1,7 +1,13 @@
 import { ApolloClient, gql, HttpLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { ApolloQueryResult } from '@apollo/client/core/types';
 import { FetchResult } from '@apollo/client/link/core';
-import { GraphQLRequest, IntegrationId, Squid } from '@squidcloud/client';
+import { IntegrationId, Squid } from '@squidcloud/client';
+
+interface GraphQLRequest {
+  operationName?: string;
+  query?: string;
+  variables?: string | Record<string, any>;
+}
 
 /** The interface supported by Squid but is not exposed to public. */
 interface SquidInternal {
