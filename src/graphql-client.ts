@@ -7,6 +7,11 @@ import { GraphQLRequest, IntegrationId, Squid } from '@squidcloud/client';
 interface SquidInternal {
   internal(): {
     getApplicationUrl: (region: string, appId: string, integrationId: string) => string;
+    appIdWithEnvironmentIdAndDevId: (
+      appId: string,
+      environmentId: string | undefined,
+      developerId: string | undefined,
+    ) => string;
     getStaticHeaders: () => Record<string, string>;
   };
 }
@@ -16,12 +21,15 @@ interface SquidInternal {
 export class GraphQLClient {
   private readonly client: ApolloClient<NormalizedCacheObject>;
 
-  constructor(
-    squid: Squid,
-    integrationId: IntegrationId,
-  ) {
+  constructor(squid: Squid, integrationId: IntegrationId) {
     const squidInternal = (squid as unknown as SquidInternal).internal();
-    const url = squidInternal.getApplicationUrl(squid.options.region, squid.options.appId, `${integrationId}/graphql`);
+    const options = squid.options;
+    const appId = squidInternal.appIdWithEnvironmentIdAndDevId(
+      options.appId,
+      options.environmentId,
+      options.squidDeveloperId,
+    );
+    const url = squidInternal.getApplicationUrl(options.region, appId, `${integrationId}/graphql`);
     this.client = new ApolloClient({
       link: new HttpLink({
         uri: url,
