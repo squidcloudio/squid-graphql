@@ -1,5 +1,6 @@
 import { ApolloClient, gql, HttpLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { ApolloQueryResult } from '@apollo/client/core/types';
+import { setContext } from '@apollo/client/link/context';
 import { FetchResult } from '@apollo/client/link/core';
 import { IntegrationId, Squid } from '@squidcloud/client';
 
@@ -19,6 +20,7 @@ interface SquidInternal {
       developerId: string | undefined,
     ) => string;
     getStaticHeaders: () => Record<string, string>;
+    getAuthHeaders?: () => Record<string, string>;
   };
 }
 
@@ -35,12 +37,25 @@ export class GraphQLClient {
       options.environmentId,
       options.squidDeveloperId,
     );
+
     const url = squidInternal.getApplicationUrl(options.region, appId, `${integrationId}/graphql`);
+    const httpLink = new HttpLink({
+      uri: url,
+      headers: squidInternal.getStaticHeaders(),
+    });
+
+    const authLink = setContext(async (_, { headers }) => {
+      const authHeaders = (await squidInternal.getAuthHeaders?.()) || {};
+      return {
+        headers: {
+          ...headers,
+          ...authHeaders,
+        },
+      };
+    });
+
     this.client = new ApolloClient({
-      link: new HttpLink({
-        uri: url,
-        headers: squidInternal.getStaticHeaders(),
-      }),
+      link: authLink.concat(httpLink),
       cache: new InMemoryCache(),
     });
   }
@@ -62,6 +77,7 @@ export class GraphQLClient {
       mutation: gql`
         ${request.query}
       `,
+      variables: request.variables as Record<string, any>,
     });
     return result.data;
   }
