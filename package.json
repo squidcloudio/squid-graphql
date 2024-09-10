@@ -1,6 +1,6 @@
 {
   "name": "@squidcloud/graphql",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Squid GraphQL Client",
   "types": "dist/cjs/index.d.ts",
   "main": "dist/cjs/index.js",
